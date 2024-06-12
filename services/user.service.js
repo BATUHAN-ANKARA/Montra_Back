@@ -1,8 +1,8 @@
 const User = require("../models/user.model");
 const utils = require("../utils/index");
 const telegramResponse = require("./telegram.service");
+const fileService = require("./file.service");
 
-// 1 Kullanıcı kayıt işlemi (register) - Kemal
 exports.register = async (req) => {
   try {
     let { name, surname, email, password, birthDate } = req.body;
@@ -21,12 +21,152 @@ exports.register = async (req) => {
     });
     await user.save();
     const token = utils.helper.createToken(user._id, user.name, user.email);
-    const response = await telegramResponse.telegramResponse(name, surname, email);
+    const response = await telegramResponse.registerMessage(
+      name,
+      surname,
+      email
+    );
     return {
       token,
       user,
       telegramResult: response,
     };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.login = async (req) => {
+  try {
+    const { email, password } = req.body;
+    const _password = utils.helper.hashToPassword(password);
+    const user = await User.find({ email: email, password: _password });
+    if (user === null || user.length === 0) {
+      throw new Error("Email veya şifre hatalı");
+    }
+    const token = utils.helper.createToken(
+      user[0]._id,
+      user[0].name,
+      user[0].email
+    );
+    return {
+      token,
+      user: user[0],
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.getAllUsers = async () => {
+  try {
+    const users = await User.find();
+    return users;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+exports.updateAvatar = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const str = await fileService.uploadImage(req, res);
+    const json = await User.findByIdAndUpdate(
+      id,
+      { avatar: str },
+      { new: true }
+    );
+    return json;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+exports.UpdatePassword = async (req) => {
+  try {
+    const { email, newPassword } = req.body;
+    const user = await User.find({ email: email });
+    if (user === null || user.length === 0) {
+      throw new Error("Email hatali");
+    }
+    const _password = utils.helper.hashToPassword(newPassword);
+    const id = user[0]._id;
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      {
+        password: _password,
+      },
+      { new: true }
+    );
+    return updatedUser;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.deleteUserById = async (req) => {
+  const userId = req.params.id;
+  try {
+    // id ile kullanıcıyı silme
+    const result = await User.findByIdAndDelete(userId);
+    if (result.deletedCount === 1) {
+      await telegramResponse.deleteMessage(result.name, result.surname, result.email);
+      return { message: "Kullanıcı başarıyla silindi." };
+    } else {
+      return { message: "Kullanıcı bulunamadı." };
+    }
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
+exports.updateUserById = async (req) => {
+  try {
+    const { id } = req.params;
+    const { name, surname, email, password } = req.body;
+    const updatedUserById = await User.findByIdAndUpdate(
+      id,
+      {
+        name,
+        surname,
+        email,
+        password,
+      },
+      { new: true }
+    );
+    return updatedUserById;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.getUserById = async (req) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (user === null || user.length === 0) {
+      throw new Error("kullanıcı bulunamadı");
+    } else {
+      return user;
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.updateUserPin = async (req) => {
+  try {
+    const { id } = req.params; // Kullanıcı ID'sini istek parametrelerinden alın
+    const { currentPin, newPin } = req.body; // Güncellenmiş PIN verilerini istek gövdesinden alın
+    // Kullanıcıyı ID ve mevcut PIN ile bulun
+    const user = await User.findOne({ _id: id, pin: currentPin });
+    if (!user) {
+      throw new Error("Kullanıcı bulunamadı veya mevcut PIN hatalı");
+    }
+    // Kullanıcı PIN'ini güncelle
+    user.pin = newPin;
+    await user.save(); // Değişiklikleri kaydedin
+    return user;
   } catch (error) {
     throw new Error(error.message);
   }

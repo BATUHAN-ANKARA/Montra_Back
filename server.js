@@ -3,6 +3,7 @@ const serverConfig = require("./configs/index");
 const db = require("./db/index");
 const consts = require("./consts/index");
 const router = require("./routers/index");
+const telegramService = require("./services/telegram.service");
 
 const app = express();
 serverConfig.serverConfig.initialServerConfig();
@@ -16,6 +17,7 @@ db.mongooseConnection
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Server started on port ${PORT}`);
+      telegramService.initialMessage();
     });
   })
   .catch((err) => {
