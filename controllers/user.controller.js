@@ -27,3 +27,79 @@ exports.register = async (req, res) => {
       .status(StatusCodes.INTERNAL_SERVER_ERROR);
   }
 };
+
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const _password = utils.helper.hashToPassword(password);
+    const user = await User.find({ email: email, password: _password });
+    {
+    }
+    res
+      .json({
+        ...baseResponse,
+        data: user,
+        message: "Giriş yapıldı",
+      })
+      .status(StatusCodes.OK);
+  } catch (error) {
+    res
+      .json({
+        ...baseResponse,
+        message: "Giriş yapılamadı",
+        error: error,
+        errorMessage: error.message,
+        succes: false,
+        error: true,
+      })
+      .status(StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    res
+      .json({
+        ...baseResponse,
+        data: users,
+        message: "Kullanıcılar:",
+      })
+      .status(StatusCodes.OK);
+  } catch (error) {
+    res
+      .json({
+        ...baseResponse,
+        message: "Kullanıcılar bulunamadı",
+        error: error,
+        errorMessage: error.message,
+        succes: false,
+        error: true,
+      })
+      .status(StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+};
+
+exports.updateAvatar = async (req, res) => {
+  try {
+    const User = await service.userService.updateAvatar(req);
+    res
+      .json({
+        ...baseResponse,
+        data: User,
+        message: "Güncelleme başarılı",
+      })
+      .status(StatusCodes.OK);
+  } catch (error) {
+    res
+      .json({
+        ...baseResponse,
+        message: "Fotoğrafınız güncellenemedi",
+        error: error,
+        errorMessage: error.message,
+        succes: false,
+        error: true,
+      })
+      .status(StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+};

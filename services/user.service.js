@@ -3,6 +3,7 @@ const utils = require("../utils/index");
 const telegramResponse = require("./telegram.service");
 const fileService = require("./file.service");
 
+// uygulamaya kayıt
 exports.register = async (req) => {
   try {
     let { name, surname, email, password, birthDate } = req.body;
@@ -36,6 +37,7 @@ exports.register = async (req) => {
   }
 };
 
+// hesaba giriş yapma
 exports.login = async (req) => {
   try {
     const { email, password } = req.body;
@@ -58,6 +60,7 @@ exports.login = async (req) => {
   }
 };
 
+// bütün kullanıcıları getirme
 exports.getAllUsers = async () => {
   try {
     const users = await User.find();
@@ -67,6 +70,7 @@ exports.getAllUsers = async () => {
   }
 }
 
+// profil fotoğrafı güncelleme
 exports.updateAvatar = async (req, res) => {
   try {
     const { id } = req.params;
@@ -82,6 +86,7 @@ exports.updateAvatar = async (req, res) => {
   }
 };
 
+// şifre güncelleme
 exports.UpdatePassword = async (req) => {
   try {
     const { email, newPassword } = req.body;
@@ -104,6 +109,7 @@ exports.UpdatePassword = async (req) => {
   }
 };
 
+// id ile kullanıcı silme
 exports.deleteUserById = async (req) => {
   const userId = req.params.id;
   try {
@@ -120,6 +126,7 @@ exports.deleteUserById = async (req) => {
   }
 };
 
+// id ile kullanıcı güncelleme
 exports.updateUserById = async (req) => {
   try {
     const { id } = req.params;
@@ -140,6 +147,7 @@ exports.updateUserById = async (req) => {
   }
 };
 
+// id ile kullanıcı görme
 exports.getUserById = async (req) => {
   try {
     const { id } = req.params;
@@ -154,6 +162,7 @@ exports.getUserById = async (req) => {
   }
 };
 
+// uygulama şifresi güncelleme
 exports.updateUserPin = async (req) => {
   try {
     const { id } = req.params; // Kullanıcı ID'sini istek parametrelerinden alın
