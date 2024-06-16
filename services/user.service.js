@@ -87,12 +87,12 @@ exports.updateAvatar = async (req, res) => {
 };
 
 // şifre güncelleme
-exports.UpdatePassword = async (req) => {
+exports.updatePassword = async (req) => {
   try {
     const { email, newPassword } = req.body;
     const user = await User.find({ email: email });
     if (user === null || user.length === 0) {
-      throw new Error("Email hatali");
+      throw new Error("Email hatalı");
     }
     const _password = utils.helper.hashToPassword(newPassword);
     const id = user[0]._id;

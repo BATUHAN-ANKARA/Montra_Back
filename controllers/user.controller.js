@@ -103,3 +103,81 @@ exports.updateAvatar = async (req, res) => {
       .status(StatusCodes.INTERNAL_SERVER_ERROR);
   }
 };
+
+exports.getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    res
+      .json({
+        ...baseResponse,
+        data: user,
+        message: "Kullanıcı:",
+      })
+      .status(StatusCodes.OK);
+  } catch (error) {
+    res
+      .json({
+        ...baseResponse,
+        message: "Kullanıcı bulunamadı",
+        error: error,
+        errorMessage: error.message,
+        succes: false,
+        error: true,
+      })
+      .status(StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+};
+
+exports.updateUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (id !== id) {
+      throw new Error("Aradığınız id ile kullanıcı bulunamadı");
+    }
+    const User = await service.userService.updateUserById(req);
+    res
+      .json({
+        ...baseResponse,
+        data: User,
+        message: "Güncelleme başarılı",
+      })
+      .status(StatusCodes.OK);
+  } catch (error) {
+    res
+      .json({
+        ...baseResponse,
+        message: "Bilgileriniz güncellenemedi",
+        error: error,
+        errorMessage: error.message,
+        succes: false,
+        error: true,
+      })
+      .status(StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+};
+
+exports.updatePassword = async (req, res) => {
+  try {
+    const updatedUser = await service.userService.updatePassword(req)
+    res
+    .json({
+      ...baseResponse,
+      data: User,
+      message: "Güncelleme başarılı",
+    })
+    .status(StatusCodes.OK);
+} catch (error) {
+  res
+    .json({
+      ...baseResponse,
+      message: "Şifreniz güncellenemedi",
+      error: error,
+      errorMessage: error.message,
+      succes: false,
+      error: true,
+    })
+    .status(StatusCodes.INTERNAL_SERVER_ERROR);
+}
+};
