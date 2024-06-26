@@ -5,7 +5,7 @@ const fileService = require("./file.service");
 
 exports.register = async (req) => {
   try {
-    let { name, surname, email, password, birthDate } = req.body;
+    let { name, surname, email, password, birthDate, pin } = req.body;
     const existUser = await User.find({ email: email });
     if (existUser.length > 0) {
       throw new Error("Bu email adresi ile kayıtlı kullanıcı bulunmaktadır.");
@@ -18,6 +18,7 @@ exports.register = async (req) => {
       email,
       password: _password,
       birthDate,
+      pin,
     });
     await user.save();
     const token = utils.helper.createToken(user._id, user.name, user.email);
@@ -65,7 +66,7 @@ exports.getAllUsers = async () => {
   } catch (error) {
     throw new Error(error.message);
   }
-}
+};
 
 exports.updateAvatar = async (req, res) => {
   try {
@@ -94,7 +95,7 @@ exports.UpdatePassword = async (req) => {
     const updatedUser = await User.findByIdAndUpdate(
       id,
       {
-        password: _password,
+        newPassword: _password,
       },
       { new: true }
     );
@@ -110,7 +111,11 @@ exports.deleteUserById = async (req) => {
     // id ile kullanıcıyı silme
     const result = await User.findByIdAndDelete(userId);
     if (result.deletedCount === 1) {
-      await telegramResponse.deleteMessage(result.name, result.surname, result.email);
+      await telegramResponse.deleteMessage(
+        result.name,
+        result.surname,
+        result.email
+      );
       return { message: "Kullanıcı başarıyla silindi." };
     } else {
       return { message: "Kullanıcı bulunamadı." };
