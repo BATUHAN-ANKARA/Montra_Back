@@ -9,7 +9,7 @@ exports.uploadImage = (req, res) => {
       }
       const ip = await utils.helper.getHost();
       const filePath = process.env.FILE_PATH;
-      const fileName = req.file.filename;
+      const fileName = req.file.fileName;
       const fileString = `${ip}${filePath}${fileName}`;
       resolve(fileString);
     });
