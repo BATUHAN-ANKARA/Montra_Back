@@ -33,6 +33,13 @@ const deleteMessage = async (name, surname, email) => {
   );
 };
 
+// selam yazıldığında botun cevap vermesi
+
+bot.onText(/selam/, (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, "Merhaba, nasıl yardımcı olabilirim?");
+});
+
 module.exports = {
   registerMessage,
   deleteMessage,

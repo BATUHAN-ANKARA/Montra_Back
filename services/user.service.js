@@ -185,3 +185,73 @@ exports.updateUserPin = async (req) => {
     throw new Error(error.message);
   }
 };
+
+exports.getUserByEmail = async (req) => {
+  try {
+    const { email } = req.params;
+    const user = await User.find(email);
+    if (user === null || user.length === 0) {
+      throw new Error("User Not Found!");
+    } else {
+      return user;
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.getUserByName = async (req) => {
+  try {
+    const { name } = req.params;
+    const user = await User.find(name);
+    if (user === null || user.length === 0) {
+      throw new Error("kullanıcı bulunamadı");
+    } else {
+      return user;
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.getUserBySurname = async (req) => {
+  try {
+    const { surname } = req.params;
+    const user = await User.find(surname);
+    if (user === null || user.length === 0) {
+      throw new Error("kullanıcı bulunamadı");
+    } else {
+      return user;
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.getUserByAge = async (req) => {
+  try {
+    const { age } = req.params;
+    const user = await User.find(age);
+    if (user === null || user.length === 0) {
+      throw new Error("kullanıcı bulunamadı");
+    } else {
+      return user;
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.getUserByGender = async (req) => {
+  try {
+    const { gender } = req.params;
+    const user = await User.find(gender);
+    if (user === null || user.length === 0) {
+      throw new Error("kullanıcı bulunamadı");
+    } else {
+      return user;
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
