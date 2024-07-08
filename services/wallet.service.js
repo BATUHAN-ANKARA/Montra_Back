@@ -36,6 +36,7 @@ exports.updateWallet = async (req) => {
     throw new Error(error.message);
   }
 };
+
 exports.updateBalance = async (req) => {
   try {
     const { id } = req.params;
