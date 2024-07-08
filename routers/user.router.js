@@ -16,6 +16,7 @@ router.delete("/deleteUserById/:id", controller.userController.deleteUserById);
 router.put("/updateUserById/:id", controller.userController.updateUserById); 
 router.put("/updateUserPin/:id", controller.userController.updateUserPin);
 
+
 module.exports = {
   user: router,
 };
