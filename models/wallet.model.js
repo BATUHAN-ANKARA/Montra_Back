@@ -15,12 +15,11 @@ const walletSchema = new Schema(
     },
     balance: {
       type: Number,
-      required: true,
     },
     currency: {
       type: String,
       required: true,
-      enum: ["USD", "EUR", "GBP", "JPY", "CNY"],
+      enum: ["USD", "EUR", "GBP", "JPY", "CNY", "TRY"],
     },
     logo: {
       type: String,
