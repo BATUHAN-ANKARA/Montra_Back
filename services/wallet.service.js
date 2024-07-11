@@ -36,7 +36,6 @@ exports.updateWallet = async (req) => {
     throw new Error(error.message);
   }
 };
-
 exports.updateBalance = async (req) => {
   try {
     const { id } = req.params;
@@ -144,6 +143,74 @@ exports.createWallet = async (req) => {
     });
     await wallet.save();
     return wallet;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+exports.deleteWallet = async (req) => {
+  try {
+    const { id } = req.params;
+    const wallet = await Wallet.findById(id);
+    if (!wallet) {
+      throw new Error("Cüzdan bulunamadı.");
+    }
+    await Wallet.deleteMany({ wallet: wallet });
+    // transactions silinecek
+    return "Cüzdan başariyla silindi.";
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+exports.deleteTransactionsByWalletId = async (req) => {
+  try {
+    const { walletId } = req.params;
+    await Transaction.deleteMany({
+      wallet: walletId,
+    });
+    return "basariyla silindi.";
+  } catch (error) {
+    throw new Error("Silme islemi gerceklestirilemedi");
+  }
+};
+exports.updateColor = async (req) => {
+  try {
+    const { walletId, newColor } = req.params;
+    const updatedColor = await Wallet.findByIdAndUpdate(
+      walletId,
+      { color: newColor },
+      { new: true }
+    );
+    return updatedColor;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+exports.deleteWalletsByUserId = async (req) => {
+  try {
+    const { userId } = req.params;
+    //kullanıcıyı sorgulayın
+    const wallets = await Wallet.find({ user: userId });
+    if (wallets === null || wallets.length === 0) {
+      throw new Error("böyle bir cüzdan bulunamadı");
+    } else {
+      await Wallet.deleteMany({ wallet: wallets });
+      // transactions silinecek
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.getTransactionsByWalletId = async (req) => {
+  try {
+    const { walletId } = req.params;
+    // cüzdan var mı diye kontrol et
+    const transactions = await Transaction.find({ wallet: walletId });
+    if (transactions === null || transactions.length === 0) {
+      throw new Error("boyle bir islem bulunamadi");
+    } else {
+      return transactions;
+    }
   } catch (error) {
     throw new Error(error.message);
   }
