@@ -4,124 +4,6 @@ const Budget = require("../models/budget.model");
 const User = require("../models/user.model");
 const fileService = require("./file.service");
 
-// Cüzdan bilgilerini getir (id ile) (getWalletBYId)
-// Cüzdanı sil (deleteWallet)
-// Cüzdanın bakiyesini kontrol et (checkBalance)
-// Cüzdanın bakiyesini güncelle (decreaseBalance)
-// Cüzdanın bakiyesini güncelle (increaseBalance)
-// Cüzdan silindiğinde cüzdana ait tüm işlemleri sil (deleteTransactions)
-// Cüzdan silindiğinde cüzdanın sahibine ait tüm bütçeleri sil (deleteBudgetsByUserId)
-// Cüzdan silindiğinde cüzdanın sahibine ait tüm işlemleri sil (deleteTransactionsByUserId)
-// Cüzdan renklerini getir (getColors)
-// Cüzdan renklerini güncelle (updateColor)
-// Cüzdan logolarını güncelle (updateLogo)
-// Cüzdan currency'lerini getir (getCurrencies)
-// Cüzdan currency'lerini güncelle (updateCurrency)
-// Cüzdan isDefault bilgisini güncelle (updateIsDefault)
-// Cüzdan isDefault bilgisini getir (getIsDefault)
-// Cüzdanın sahibine ait tüm cüzdanları sil (deleteWalletsByUserId)
-// Cüzdanın işlemlerini getir (getTransactionsByWalletId)
-
-exports.updateWallet = async (req) => {
-  try {
-    const { id } = req.params;
-    const { name, color } = req.body;
-    const updateWallets = await Wallet.findByIdAndUpdate({
-      id,
-      name: name,
-      color: color,
-    });
-    return updateWallets;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-};
-exports.updateBalance = async (req) => {
-  try {
-    const { id } = req.params;
-    const { newBalance } = req.body;
-
-    const wallet = await Wallet.findById(id);
-    if (!wallet) {
-      throw new Error("Cüzdan bulunamadı.");
-    }
-    wallet.balance = newBalance;
-    await wallet.save();
-    return wallet;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-};
-exports.deleteBudgets = async (req) => {
-  try {
-    const { id } = req.params;
-    // Cüzdanı bulun
-    const wallet = await Wallet.findById(id);
-    if (!wallet) {
-      throw new Error("Cüzdan bulunamadı.");
-    }
-    // Cüzdan sahibinin ID'sini alın
-    const ownerId = wallet.user;
-    // Sahibe ait tüm bütçeleri silin
-    await Budget.deleteMany({ user: ownerId });
-    return "Cüzdan ile ilgili bütçeler başarıyla silindi.";
-  } catch (error) {
-    throw new Error(error.message);
-  }
-};
-exports.deleteTransactionsByWalletIdAndUserId = async (req) => {
-  try {
-    const { walletId, userId } = req.params;
-    // Veritabanından ilgili walletId ve userId'ye göre işlemleri sil
-    await Transaction.deleteMany({
-      wallet: walletId,
-      user: userId,
-    });
-    return "başarıyla silindi.";
-  } catch (error) {
-    throw new Error("İşlemler silinirken hata oluştu");
-  }
-};
-exports.getLogos = async (req) => {
-  try {
-    const { userId } = req.params;
-    const wallets = await Wallet.find({ user: userId });
-    let logos = [];
-    wallets.forEach((wallet) => {
-      logos.push(wallet.logo);
-    });
-    return logos;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-};
-exports.updateLogo = async (req) => {
-  try {
-    const { walletId } = req.params; // request parametresinden walletId'yi alın
-    const logoUrl = await fileService.uploadImage(req, res); // Resmi yükleyin ve URL'sini alın
-    const updatedWallet = await Wallet.findByIdAndUpdate(
-      walletId,
-      { logo: logoUrl }, // logo alanını güncelleyin
-      { new: true } // Güncellenmiş dokümanı döndürmek için new: true kullanın
-    );
-    return updatedWallet;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-};
-exports.getWalletsByUserId = async (req) => {
-  try {
-    const { userId } = req.params;
-    const wallets = await Wallet.find({ user: userId });
-    if (wallets === null || wallets.length === 0) {
-      throw new Error("böyle bir cüzdan bulunamadı");
-    } else {
-      return wallets;
-    }
-  } catch (error) {
-    throw new Error(error.message);
-  }
-};
 exports.createWallet = async (req) => {
   try {
     let { userıd, name, currency, color, isDefault } = req.body;
@@ -147,6 +29,36 @@ exports.createWallet = async (req) => {
     throw new Error(error.message);
   }
 };
+
+exports.getWalletById = async (req) => {
+  try {
+    const { walletId } = req.params;
+    const wallet = await Wallet.find({ wallet: walletId });
+    if (wallet === null || wallet.length === 0) {
+      throw new Error("Böyle bir cüzdan bulunamadı!");
+    } else {
+      return wallet;
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.updateWallet = async (req) => {
+  try {
+    const { id } = req.params;
+    const { name, color } = req.body;
+    const updateWallets = await Wallet.findByIdAndUpdate({
+      id,
+      name: name,
+      color: color,
+    });
+    return updateWallets;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 exports.deleteWallet = async (req) => {
   try {
     const { id } = req.params;
@@ -154,16 +66,23 @@ exports.deleteWallet = async (req) => {
     if (!wallet) {
       throw new Error("Cüzdan bulunamadı.");
     }
-    await Wallet.deleteMany({ wallet: wallet });
-    // transactions silinecek
+    await Transaction.deleteMany({
+      wallet: id,
+    });
+    await Wallet.deleteMany({ wallet: id });
     return "Cüzdan başariyla silindi.";
   } catch (error) {
     throw new Error(error.message);
   }
 };
+
 exports.deleteTransactionsByWalletId = async (req) => {
   try {
     const { walletId } = req.params;
+    const wallet = await Wallet.findById(walletId);
+    if (!wallet) {
+      throw new Error("Cüzdan bulunamadı.");
+    }
     await Transaction.deleteMany({
       wallet: walletId,
     });
@@ -172,6 +91,85 @@ exports.deleteTransactionsByWalletId = async (req) => {
     throw new Error("Silme islemi gerceklestirilemedi");
   }
 };
+
+exports.deleteBudgets = async (req) => {
+  try {
+    const { id } = req.params;
+    // Cüzdanı bulun
+    const wallet = await Wallet.findById(id);
+    if (!wallet) {
+      throw new Error("Cüzdan bulunamadı.");
+    }
+    // Cüzdan sahibinin ID'sini alın
+    const ownerId = wallet.user;
+    // Sahibe ait tüm bütçeleri silin
+    await Budget.deleteMany({ user: ownerId });
+    return "Cüzdan ile ilgili bütçeler başarıyla silindi.";
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.updateBalance = async (req) => {
+  try {
+    const { id } = req.params;
+    const { newBalance } = req.body;
+
+    const wallet = await Wallet.findById(id);
+    if (!wallet) {
+      throw new Error("Cüzdan bulunamadı.");
+    }
+    wallet.balance = newBalance;
+    await wallet.save();
+    return wallet;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.getLogos = async (req) => {
+  try {
+    const { userId } = req.params;
+    const wallets = await Wallet.find({ user: userId });
+    let logos = [];
+    wallets.forEach((wallet) => {
+      logos.push(wallet.logo);
+    });
+    return logos;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.updateLogo = async (req) => {
+  try {
+    const { walletId } = req.params; // request parametresinden walletId'yi alın
+    const logoUrl = await fileService.uploadImage(req, res); // Resmi yükleyin ve URL'sini alın
+    const updatedWallet = await Wallet.findByIdAndUpdate(
+      walletId,
+      { logo: logoUrl }, // logo alanını güncelleyin
+      { new: true } // Güncellenmiş dokümanı döndürmek için new: true kullanın
+    );
+    return updatedWallet;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+exports.getWalletsByUserId = async (req) => {
+  try {
+    const { userId } = req.params;
+    const wallets = await Wallet.find({ user: userId });
+    if (wallets === null || wallets.length === 0) {
+      throw new Error("böyle bir cüzdan bulunamadı");
+    } else {
+      return wallets;
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 exports.updateColor = async (req) => {
   try {
     const { walletId, newColor } = req.params;
@@ -185,16 +183,23 @@ exports.updateColor = async (req) => {
     throw new Error(error.message);
   }
 };
+
 exports.deleteWalletsByUserId = async (req) => {
   try {
     const { userId } = req.params;
     //kullanıcıyı sorgulayın
+    const user = await User.find({ user: userId });
+    if (user === null || user.length === 0) {
+      throw new Error("Boyle bir kullanici bulunamadi");
+    }
     const wallets = await Wallet.find({ user: userId });
     if (wallets === null || wallets.length === 0) {
       throw new Error("böyle bir cüzdan bulunamadı");
     } else {
-      await Wallet.deleteMany({ wallet: wallets });
-      // transactions silinecek
+      await Transaction.deleteMany({
+        user: userId,
+      });
+      await Wallet.deleteMany({ user: userId });
     }
   } catch (error) {
     throw new Error(error.message);
@@ -205,6 +210,10 @@ exports.getTransactionsByWalletId = async (req) => {
   try {
     const { walletId } = req.params;
     // cüzdan var mı diye kontrol et
+    const wallet = await Wallet.findById(walletId);
+    if (wallet === null || wallet.length === 0) {
+      throw new Error("boyle bir cüzdan bulunamadi");
+    }
     const transactions = await Transaction.find({ wallet: walletId });
     if (transactions === null || transactions.length === 0) {
       throw new Error("boyle bir islem bulunamadi");
@@ -215,3 +224,26 @@ exports.getTransactionsByWalletId = async (req) => {
     throw new Error(error.message);
   }
 };
+
+exports.getWalletByUserId = async (req) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("Kullanıcı bulunamadı.");
+    }
+    const wallets = await Wallet.find({ user: userId });
+    return wallets;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Cüzdanın bakiyesini kontrol et (checkBalance) - Mehmet cüzdanı find ile bulup balance bilgisini geri döndürecek
+// Cüzdanın bakiyesini güncelle (decreaseBalance) - Mehmet cüzdanın id bilgisi ile miktar bilgisini paramstan alıp bakiyesini güncelleyecek
+// Cüzdanın bakiyesini güncelle (increaseBalance) - Mehmet
+// Cüzdan renklerini getir (getColors) - Mehmet
+// Cüzdan isDefault bilgisini getir (getIsDefault) - Mehmet
+// Cüzdan currency'lerini getir (getCurrencies) - Ekrem
+// Cüzdan currency'lerini güncelle (updateCurrency) - Taha
+// Cüzdan isDefault bilgisini güncelle (updateIsDefault) - Ekrem
